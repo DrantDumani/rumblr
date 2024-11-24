@@ -8,6 +8,10 @@
     "test": "NODE_ENV=test && jest --watch",
     "start": "node app.js"
   },
+  "jest": {
+    "globalSetup": "./tests/setup.js",
+    "globalTeardown": "./tests/teardown.js"
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",
@@ -22,8 +26,7 @@
     "multer": "^1.4.5-lts.1",
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",
-    "passport-local": "^1.0.0",
-    "pg": "^8.13.1"
+    "passport-local": "^1.0.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.14.0",
