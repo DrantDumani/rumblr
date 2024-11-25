@@ -6,7 +6,7 @@ const bcrypt = require('bcrypt');
 exports.signUp = async (req, res, next) => {
   try {
     const hashedPw = await bcrypt.hash(req.body.pw, 10);
-    const user = await client.users.create({
+    const user = await client.user.create({
       data: {
         uname: req.body.username,
         pw: hashedPw,
@@ -30,13 +30,14 @@ exports.logIn = async (req, res, next) => {
     const token = sign_jwt(req.user);
     return res.json({ token });
   } catch (e) {
+    console.error(e);
     return next(e);
   }
 };
 
 exports.getUser = async (req, res, next) => {
   try {
-    const user = await client.users.findUnique({
+    const user = await client.user.findUnique({
       where: {
         id: Number(req.params.userId),
       },
@@ -59,7 +60,7 @@ exports.getUser = async (req, res, next) => {
 
 exports.editUser = async (req, res, next) => {
   try {
-    const updatedUser = await client.users.update({
+    const updatedUser = await client.user.update({
       where: {
         id: req.user.id,
       },

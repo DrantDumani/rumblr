@@ -19,7 +19,7 @@ const testUser = {
 afterEach(async () => {
   // remove the test user if its been inserted
   try {
-    await client.users.delete({
+    await client.user.delete({
       where: {
         email: testUser.email,
       },
@@ -73,7 +73,7 @@ describe('Handle bad sign up route user data', () => {
   });
 
   it('400 on duplicate username', async () => {
-    await client.users.create({
+    await client.user.create({
       data: testUser,
     });
 
@@ -88,7 +88,7 @@ describe('Handle bad sign up route user data', () => {
   });
 
   it('400 on duplicate email', async () => {
-    await client.users.create({
+    await client.user.create({
       data: testUser,
     });
 
@@ -117,7 +117,7 @@ describe('Successful sign up', () => {
 
 describe('Bad Log in', () => {
   it('Responds 401 on incorrect email', async () => {
-    await client.users.create({
+    await client.user.create({
       data: testUser,
     });
 
@@ -130,7 +130,7 @@ describe('Bad Log in', () => {
   });
 
   it('Responds 401 on incorrect password', async () => {
-    await client.users.create({
+    await client.user.create({
       data: testUser,
     });
 
@@ -146,7 +146,7 @@ describe('Bad Log in', () => {
   });
 
   it('200 on successful login', async () => {
-    await client.users.create({
+    await client.user.create({
       data: {
         uname: testUser.uname,
         email: testUser.email,
@@ -169,7 +169,7 @@ describe('Get user data', () => {
   });
 
   it('Returns name, pfp, header, and about', async () => {
-    const user = await client.users.create({
+    const user = await client.user.create({
       data: {
         uname: testUser.uname,
         email: testUser.email,
@@ -194,7 +194,7 @@ describe('Get user data', () => {
 
 describe('Editing user data', () => {
   it("Should change user's about section", async () => {
-    const user = await client.users.create({
+    const user = await client.user.create({
       data: {
         uname: testUser.uname,
         email: testUser.email,
