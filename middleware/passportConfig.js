@@ -9,7 +9,7 @@ const ExtractJwt = jwtPassport.ExtractJwt;
 
 const localVerify = async (email, pw, done) => {
   try {
-    const user = await client.users.findUnique({ where: { email: email } });
+    const user = await client.user.findUnique({ where: { email: email } });
     if (!user) return done(null, false);
 
     const match = await bcrypt.compare(pw, user.pw);
