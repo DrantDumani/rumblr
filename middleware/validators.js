@@ -12,6 +12,16 @@ exports.loginRules = () => [
   body('pw').isString().trim().isLength({ min: 1 }),
 ];
 
+// make sure types are allowed
+exports.postRules = () => [
+  body('type')
+    .isString()
+    .trim()
+    .isIn(['text', 'photo', 'quote', 'link', 'chat', 'audio', 'video']),
+  body('content').isString().trim().isLength({ min: 1, max: 4000 }),
+  body('tags.*').isString().trim().isLength({ max: 140 }),
+];
+
 exports.validateFields = (req, res, next) => {
   const errors = validationResult(req);
   if (errors.isEmpty()) return next();
