@@ -59,47 +59,8 @@ exports.editPost = async (req, res, next) => {
       id: el.id,
     }));
 
-    // const post_tags = oldPost.tags.map((el) => ({
-    //   tags: {
-    //     connectOrCreate: {
-    //       where: {
-    //         content: el.tags.content,
-    //       },
-    //       create: {
-    //         content: el.tags.content,
-    //       },
-    //     },
-    //   },
-    // }));
-
-    // const relatedSegments = await client.segment.findMany({
-    //   where: {
-    //     posts: {
-    //       every: {
-    //         author_id: true,
-    //         id: true,
-    //       },
-    //     },
-    //   },
-    //   select: {
-    //     id: true,
-    //     author_id: true,
-    //     created_at: true,
-    //   },
-    //   orderBy: {
-    //     created_at: 'asc',
-    //   },
-    // });
-
-    // if (
-    //   !relatedSegments.length ||
-    //   relatedSegments[relatedSegments.length - 1].author_id !== req.user.id
-    // ) {
-    //   throw new Error('Forbidden');
-    // }
-
     if (
-      !oldPost.segments.length ||
+      !oldPost ||
       oldPost.segments[oldPost.segments.length - 1].author_id !== req.user.id
     ) {
       throw new Error('Forbidden');
@@ -139,18 +100,6 @@ exports.editPost = async (req, res, next) => {
       },
     });
 
-    // delete the old post
-    // await client.post_segments.deleteMany({
-    //   where: {
-    //     post_id: Number(req.params.postId),
-    //   },
-    // });
-    // await client.posts.delete({
-    //   where: {
-    //     id: Number(req.params.postId),
-    //   },
-    // });
-
     await client.post.deleteMany({
       where: {
         id: Number(req.params.postId),
@@ -179,11 +128,6 @@ exports.getFollowersPost = async (req, res, next) => {
                   follower_id: req.user.id,
                 },
               },
-              // followers: {
-              //   some: {
-              //     follower_id: req.user.id,
-              //   },
-              // },
             },
           },
         ],
@@ -194,6 +138,15 @@ exports.getFollowersPost = async (req, res, next) => {
             id: true,
             uname: true,
             pfp: true,
+          },
+        },
+        previous: {
+          select: {
+            author: {
+              select: {
+                uname: true,
+              },
+            },
           },
         },
         segments: {
@@ -232,114 +185,62 @@ exports.getFollowersPost = async (req, res, next) => {
             },
           },
         },
-        // likes: {
-        //   select: {
-        //     _count: {
-        //       select: {
-
-        //       }
-        //     }
-        //   }
-        // },
-        // replies: {
-        //   select: {
-        //     id: true
-        //   }
-        // },
       },
     });
 
-    // const postsOLD = await client.post.findMany({
-    //   // Gather all posts that were created by people the user is following
-    //   // in order
-    //   // posts will need their segments and tags as well
-    //   where: {
-    //     users: {
-    //       followers_followers_following_idTousers: {
-    //         some: {
-    //           follower_id: req.user.id,
-    //         },
-    //       },
-    //     },
-    //   },
-    //   include: {
-    //     users: {
-    //       select: {
-    //         id: true,
-    //         uname: true,
-    //         pfp: true,
-    //       },
-    //     },
-    //     post_segments: {
-    //       orderBy: {
-    //         segment_id: 'asc',
-    //       },
-    //       select: {
-    //         segments: {
-    //           include: {
-    //             users: {
-    //               select: {
-    //                 uname: true,
-    //                 pfp: true,
-    //               },
-    //             },
-    //           },
-    //         },
-    //       },
-    //     },
-    //     post_tags: {
-    //       orderBy: {
-    //         tag_id: 'asc',
-    //       },
-    //       select: {
-    //         tags: {
-    //           select: {
-    //             id: true,
-    //             content: true,
-    //           },
-    //         },
-    //       },
-    //     },
-    //     // a parent post won't have a parent, so query likes, reblogs, and likes anyway
-    //     posts: {
-    //       select: {
-    //         likes: {
-    //           select: {
-    //             author_id: true,
-    //           },
-    //         },
-    //         replies: {
-    //           select: {
-    //             author_id: true,
-    //           },
-    //         },
-    //         other_posts: {
-    //           select: {
-    //             id: true,
-    //           },
-    //         },
-    //       },
-    //     },
-    //     likes: {
-    //       select: {
-    //         author_id: true,
-    //       },
-    //     },
-    //     replies: {
-    //       select: {
-    //         author_id: true,
-    //       },
-    //     },
-    //     other_posts: {
-    //       select: {
-    //         id: true,
-    //       },
-    //     },
-    //   },
-    // });
-    // get all the notes. Use stackoverflow answer etc
-    // console.dir(posts, { depth: Infinity });
     return res.json(posts);
+  } catch (e) {
+    return next(e);
+  }
+};
+
+exports.getSinglePost = async (req, res, next) => {
+  try {
+    const post = await client.post.findUnique({
+      where: {
+        id: Number(req.params.postId),
+      },
+      include: {
+        tags: true,
+        segments: true,
+        author: {
+          select: {
+            uname: true,
+            pfp: true,
+          },
+        },
+        previous: {
+          select: {
+            author: {
+              select: {
+                uname: true,
+              },
+            },
+          },
+        },
+        _count: {
+          select: {
+            replies: true,
+            likes: true,
+            children: true,
+          },
+        },
+        parent: {
+          select: {
+            _count: {
+              select: {
+                likes: true,
+                replies: true,
+                children: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!post) return res.status(404).json('Post not Found');
+    return res.json({ post });
   } catch (e) {
     return next(e);
   }
