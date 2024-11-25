@@ -20,4 +20,6 @@ router.put('/:postId', upload.single('file'), postController.editPost);
 
 router.get('/', postController.getFollowersPost);
 
+router.get('/:postId', postController.getSinglePost);
+
 module.exports = router;

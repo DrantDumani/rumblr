@@ -389,4 +389,29 @@ describe('Get posts', () => {
     expect(response.statusCode).toBe(200);
     expect(Array.isArray(response.body)).toBe(true);
   });
+
+  it('Fetches a specific post', async () => {
+    const userB = await client.user.findUnique({
+      where: {
+        uname: 'userB',
+      },
+    });
+
+    const token = signJwt(userB);
+
+    const testPost = await client.post.findFirst({
+      where: {
+        author: {
+          uname: 'userA',
+        },
+      },
+    });
+
+    const response = await request(app)
+      .get(`/${testPost.id}`)
+      .auth(token, { type: 'bearer' });
+
+    expect(response.statusCode).toBe(200);
+    expect(response.body.post.id).toBe(testPost.id);
+  });
 });
