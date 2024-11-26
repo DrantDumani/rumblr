@@ -22,4 +22,6 @@ router.get('/', postController.getFollowersPost);
 
 router.get('/:postId', postController.getSinglePost);
 
+router.get('/user/:userId', postController.getUsersPosts);
+
 module.exports = router;

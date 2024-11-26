@@ -132,6 +132,9 @@ exports.getFollowersPost = async (req, res, next) => {
           },
         ],
       },
+      orderBy: {
+        id: 'desc',
+      },
       include: {
         author: {
           select: {
@@ -151,7 +154,7 @@ exports.getFollowersPost = async (req, res, next) => {
         },
         segments: {
           orderBy: {
-            created_at: 'asc',
+            id: 'asc',
           },
           include: {
             author: {
@@ -190,6 +193,80 @@ exports.getFollowersPost = async (req, res, next) => {
 
     return res.json(posts);
   } catch (e) {
+    return next(e);
+  }
+};
+
+exports.getUsersPosts = async (req, res, next) => {
+  try {
+    const usersPosts = await client.post.findMany({
+      where: {
+        author_id: Number(req.params.userId),
+      },
+      orderBy: {
+        id: 'desc',
+      },
+      include: {
+        author: {
+          select: {
+            id: true,
+            uname: true,
+            pfp: true,
+          },
+        },
+        previous: {
+          select: {
+            author: {
+              select: {
+                uname: true,
+              },
+            },
+          },
+        },
+        segments: {
+          orderBy: {
+            id: 'asc',
+          },
+          include: {
+            author: {
+              select: {
+                uname: true,
+                pfp: true,
+              },
+            },
+          },
+        },
+        tags: {
+          orderBy: {
+            id: 'asc',
+          },
+        },
+        _count: {
+          select: {
+            likes: true,
+            replies: true,
+            children: true,
+          },
+        },
+        children: {
+          select: {
+            _count: {
+              select: {
+                likes: true,
+                replies: true,
+                children: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    console.log(usersPosts);
+
+    return res.json(usersPosts);
+  } catch (e) {
+    console.error(e);
     return next(e);
   }
 };
