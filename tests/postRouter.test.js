@@ -159,16 +159,6 @@ describe('Delete posts', () => {
             author_id: dummy.id,
           },
         },
-        // post_segments: {
-        //   create: {
-        //     segments: {
-        //       create: {
-        //         content: 'b',
-        //         author_id: dummy.id,
-        //       },
-        //     },
-        //   },
-        // },
       },
     });
 
@@ -225,16 +215,6 @@ describe('Delete posts', () => {
             author_id: testUser.id,
           },
         },
-        // post_segments: {
-        //   create: {
-        //     segments: {
-        //       create: {
-        //         content: 'b',
-        //         author_id: testUser.id,
-        //       },
-        //     },
-        //   },
-        // },
       },
     });
 
@@ -303,44 +283,6 @@ describe('Editing posts', () => {
             },
           ],
         },
-        // post_segments: {
-        //   create: [
-        //     {
-        //       segments: {
-        //         create: {
-        //           content: 'b',
-        //           author_id: testUser.id,
-        //           created_at: new Date(40000000000),
-        //         },
-        //       },
-        //     },
-        //     {
-        //       segments: {
-        //         create: {
-        //           content: 'The second',
-        //           author_id: testUser.id,
-        //           created_at: new Date(49000000000),
-        //         },
-        //       },
-        //     },
-        //   ],
-        // },
-        // post_tags: {
-        //   create: [
-        //     {
-        //       tags: {
-        //         connectOrCreate: {
-        //           where: {
-        //             content: 'tag test',
-        //           },
-        //           create: {
-        //             content: 'tag test',
-        //           },
-        //         },
-        //       },
-        //     },
-        //   ],
-        // },
       },
     });
 
