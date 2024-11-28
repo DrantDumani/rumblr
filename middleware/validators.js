@@ -22,6 +22,11 @@ exports.postRules = () => [
   body('tags.*').isString().trim().isLength({ max: 140 }),
 ];
 
+exports.replyRules = () => [
+  body('content').isString().trim().isLength({ min: 1, max: 1000 }),
+  body('cursor').optional().isInt(),
+];
+
 exports.validateFields = (req, res, next) => {
   const errors = validationResult(req);
   if (errors.isEmpty()) return next();
