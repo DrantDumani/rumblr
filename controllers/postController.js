@@ -262,8 +262,6 @@ exports.getUsersPosts = async (req, res, next) => {
       },
     });
 
-    console.log(usersPosts);
-
     return res.json(usersPosts);
   } catch (e) {
     console.error(e);

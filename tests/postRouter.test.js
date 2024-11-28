@@ -370,8 +370,6 @@ describe('Get posts', () => {
       .get(`/user/${userB.id}`)
       .auth(token, { type: 'bearer' });
 
-    console.log(response.body);
-
     expect(response.statusCode).toBe(200);
     expect(Array.isArray(response.body)).toBe(true);
   });
