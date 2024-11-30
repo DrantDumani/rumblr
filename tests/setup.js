@@ -45,4 +45,29 @@ module.exports = async () => {
       following_id: userA.id,
     },
   });
+
+  const firstUser = userA.id > userB.id ? userB : userA;
+  const secondUser = firstUser === userA ? userB : userA;
+  await client.dm.createMany({
+    data: [
+      {
+        user1_id: firstUser.id,
+        user2_id: secondUser.id,
+        content: 'Bubbles',
+        sender_id: userA.id,
+      },
+      {
+        user1_id: firstUser.id,
+        user2_id: secondUser.id,
+        content: 'Blossom',
+        sender_id: userB.id,
+      },
+      {
+        user1_id: firstUser.id,
+        user2_id: secondUser.id,
+        content: 'Buttercup',
+        sender_id: userB.id,
+      },
+    ],
+  });
 };
