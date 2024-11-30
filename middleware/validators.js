@@ -1,4 +1,4 @@
-const { body, validationResult } = require('express-validator');
+const { body, query, validationResult } = require('express-validator');
 
 exports.signUpRules = () => [
   body('username').isString().trim().isLength({ max: 20, min: 1 }),
@@ -26,6 +26,12 @@ exports.replyRules = () => [
   body('content').isString().trim().isLength({ min: 1, max: 1000 }),
   body('cursor').optional().isInt(),
 ];
+
+exports.dmRules = () => [
+  body('content').isString().trim().isLength({ min: 1, max: 1000 }),
+];
+
+exports.checkCursor = () => [query('cursor').optional().isInt()];
 
 exports.validateFields = (req, res, next) => {
   const errors = validationResult(req);
