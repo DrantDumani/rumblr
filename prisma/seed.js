@@ -1,16 +1,22 @@
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
+const bcrypt = require('bcrypt');
 
 async function main() {
   const shantae = await prisma.user.upsert({
     where: {
       email: 'genie@scuttletown.com',
     },
-    update: {},
+    update: {
+      email: 'genie@scuttletown.com',
+      uname: 'Half Genie Hero',
+      pw: await bcrypt.hash('WayForward', 10),
+      about: 'Half genie guardian of Scuttletown! Risky Boots, DNI',
+    },
     create: {
       email: 'genie@scuttletown.com',
       uname: 'Half Genie Hero',
-      pw: 'WayForward',
+      pw: await bcrypt.hash('WayForward', 10),
       about: 'Half genie guardian of Scuttletown! Risky Boots, DNI',
     },
   });
@@ -19,11 +25,17 @@ async function main() {
     where: {
       email: 'piratequeen@seas.com',
     },
-    update: {},
+    update: {
+      email: 'piratequeen@seas.com',
+      uname: 'Pirate Queen',
+      pw: await bcrypt.hash('SteamPower', 10),
+      about:
+        "Who am I? I'm Risky Boots, queen of the Seven Seas, and anyone who opposes me will be crushed flat!",
+    },
     create: {
       email: 'piratequeen@seas.com',
       uname: 'Pirate Queen',
-      pw: 'SteamPower',
+      pw: await bcrypt.hash('SteamPower', 10),
       about:
         "Who am I? I'm Risky Boots, queen of the Seven Seas, and anyone who opposes me will be crushed flat!",
     },
@@ -33,11 +45,16 @@ async function main() {
     where: {
       email: 'rottytops@brains.com',
     },
-    update: {},
+    update: {
+      email: 'rottytops@brains.com',
+      uname: 'Rotty Tops',
+      pw: await bcrypt.hash('ZombieCaravan', 10),
+      about: 'I like brains',
+    },
     create: {
       email: 'rottytops@brains.com',
       uname: 'Rotty Tops',
-      pw: 'ZombieCaravan',
+      pw: await bcrypt.hash('ZombieCaravan', 10),
       about: 'I like brains',
     },
   });
