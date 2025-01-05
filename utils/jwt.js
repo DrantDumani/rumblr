@@ -3,7 +3,7 @@ const jwt = require('jsonwebtoken');
 const sign_jwt = (user) => {
   const payload = {
     id: user.id,
-    username: user.username,
+    username: user.uname,
     pfp_id: user.pfp_id,
     h_img_id: user.h_img_id,
   };
