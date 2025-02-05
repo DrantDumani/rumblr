@@ -1,4 +1,5 @@
 const client = require('../prisma/client');
+const { handleUpload } = require('../utils/cloudinary');
 
 exports.createPost = async (req, res, next) => {
   try {
@@ -12,11 +13,77 @@ exports.createPost = async (req, res, next) => {
             content: req.body.content,
           },
         },
+        tags: {
+          connectOrCreate: req.body.tags.map((t) => ({
+            where: { content: t },
+            create: { content: t },
+          })),
+        },
       },
     });
 
     return res.json({ postId: post.id });
   } catch (e) {
+    console.log(e);
+    // consider retrying the upload if P2022 error occurs
+    return next(e);
+  }
+};
+
+exports.createMediaPost = async (req, res, next) => {
+  // use disk storage for now. But use Cloudinary api for later
+  try {
+    if (req.file) {
+      let resource_type = '';
+      if (req.body.type === 'photo') resource_type = 'image';
+      else resource_type = 'video';
+
+      const fileURL = await handleUpload(req.file, resource_type);
+
+      const data = {
+        author_id: req.user.id,
+        segments: {
+          create: {
+            author_id: req.user.id,
+            post_type: req.body.type,
+            content: fileURL,
+          },
+        },
+      };
+
+      if (req.body.tags) {
+        data.tags = {
+          connectOrCreate: req.body.tags.map((t) => ({
+            where: { content: t },
+            create: { content: t },
+          })),
+        };
+      }
+
+      const post = await client.post.create({
+        data: data,
+        // data: {
+        //   author_id: req.user.id,
+        //   segments: {
+        //     create: {
+        //       author_id: req.user.id,
+        //       post_type: req.body.type,
+        //       content: fileURL,
+        //     },
+        //   },
+        //   tags: {
+        //     connectOrCreate: req.body.tags.map((t) => ({
+        //       where: { content: t },
+        //       create: { content: t },
+        //     })),
+        //   },
+        // },
+      });
+
+      return res.json({ post_id: post.id });
+    }
+  } catch (e) {
+    console.log(e);
     return next(e);
   }
 };
@@ -177,7 +244,7 @@ exports.getFollowersPost = async (req, res, next) => {
             children: true,
           },
         },
-        children: {
+        parent: {
           select: {
             _count: {
               select: {

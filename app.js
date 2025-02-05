@@ -4,6 +4,7 @@ const cors = require('cors');
 require('dotenv').config();
 
 const userRouter = require('./routes/userRouter');
+const postRouter = require('./routes/postRouter');
 
 const port = process.env.PORT || 3000;
 
@@ -18,6 +19,7 @@ app.use(
 );
 
 app.use('/users', userRouter);
+app.use('/posts', postRouter);
 
 app.use((err, req) => {
   if (req.app.get('env') === 'development') console.error(err);

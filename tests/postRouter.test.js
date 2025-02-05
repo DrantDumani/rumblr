@@ -6,7 +6,7 @@ const signJwt = require('../utils/jwt');
 
 const app = express();
 app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
+// app.use(express.urlencoded({ extended: false }));
 app.use('/', postRouter);
 
 describe('Cannot access if not logged in', () => {
@@ -116,8 +116,7 @@ describe('Create posts', () => {
     const response = await request(app)
       .post('/')
       .auth(token, { type: 'bearer' })
-      .field('type', 'text')
-      .field('content', 'Lorem Ipsum');
+      .send({ type: 'text', content: 'Lorem Ipsum', tags: [] });
 
     expect(response.statusCode).toBe(200);
     expect(typeof response.body.postId).toBe('number');

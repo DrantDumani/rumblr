@@ -2,7 +2,7 @@ const router = require('express').Router();
 const userController = require('../controllers/userController');
 const validators = require('../middleware/validators');
 const passport = require('../middleware/passportConfig');
-const upload = require('../middleware/multer');
+const { uploadImgPost } = require('../middleware/multer');
 
 router.post(
   '/',
@@ -28,7 +28,7 @@ router.get(
 router.put(
   '/',
   passport.authenticate('jwt', { session: false }),
-  upload.single(),
+  uploadImgPost.single(),
   userController.editUser
 );
 

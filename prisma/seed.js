@@ -203,7 +203,7 @@ async function main() {
       created_at: new Date(1735220000000),
       segments: {
         create: {
-          author_id: shantae.id,
+          author_id: rotty.id,
           content: 'Shantae has the biggest brain',
           created_at: new Date(1735220000000),
         },
