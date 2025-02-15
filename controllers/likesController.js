@@ -2,20 +2,21 @@ const client = require('../prisma/client');
 
 exports.likePost = async (req, res, next) => {
   try {
-    const likedPost = await client.post.update({
+    const postToLike = await client.post.findUnique({
       where: {
         id: Number(req.params.postId),
       },
+    });
+
+    const newLike = await client.likesOnPost.create({
       data: {
-        likes: {
-          connect: {
-            id: req.user.id,
-          },
-        },
+        user_id: req.user.id,
+        post_id: Number(req.params.postId),
+        parent_id: postToLike.parent_id || postToLike.id,
       },
     });
 
-    return res.json({ liked: likedPost.id });
+    return res.json({ liked: newLike.post_id, id: newLike.id });
   } catch (e) {
     return next(e);
   }
@@ -23,20 +24,16 @@ exports.likePost = async (req, res, next) => {
 
 exports.unlikePost = async (req, res, next) => {
   try {
-    const unlikedPost = await client.post.update({
+    const unlikedPost = await client.likesOnPost.delete({
       where: {
-        id: Number(req.params.postId),
-      },
-      data: {
-        likes: {
-          disconnect: {
-            id: req.user.id,
-          },
+        user_id_post_id: {
+          user_id: req.user.id,
+          post_id: Number(req.params.postId),
         },
       },
     });
 
-    return res.json({ unliked: unlikedPost.id });
+    return res.json({ unliked: unlikedPost.post_id });
   } catch (e) {
     return next(e);
   }
@@ -45,10 +42,23 @@ exports.unlikePost = async (req, res, next) => {
 exports.getLikedPosts = async (req, res, next) => {
   try {
     const likedPosts = await client.post.findMany({
+      take: 10,
       where: {
-        likes: {
+        usersLiked: {
           some: {
-            id: req.user.id,
+            user_id: req.user.id,
+          },
+        },
+        isDeleted: false,
+      },
+      include: {
+        segments: true,
+        usersLiked: {
+          select: {
+            id: true,
+          },
+          orderBy: {
+            id: 'desc',
           },
         },
       },

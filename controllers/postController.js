@@ -31,7 +31,6 @@ exports.createPost = async (req, res, next) => {
 };
 
 exports.createMediaPost = async (req, res, next) => {
-  // use disk storage for now. But use Cloudinary api for later
   try {
     if (req.file) {
       let resource_type = '';
@@ -62,22 +61,6 @@ exports.createMediaPost = async (req, res, next) => {
 
       const post = await client.post.create({
         data: data,
-        // data: {
-        //   author_id: req.user.id,
-        //   segments: {
-        //     create: {
-        //       author_id: req.user.id,
-        //       post_type: req.body.type,
-        //       content: fileURL,
-        //     },
-        //   },
-        //   tags: {
-        //     connectOrCreate: req.body.tags.map((t) => ({
-        //       where: { content: t },
-        //       create: { content: t },
-        //     })),
-        //   },
-        // },
       });
 
       return res.json({ post_id: post.id });
@@ -90,12 +73,18 @@ exports.createMediaPost = async (req, res, next) => {
 
 exports.deletePost = async (req, res, next) => {
   try {
-    const deletedPost = await client.post.delete({
+    // archive the post to continue tracking notes
+
+    const deletedPost = await client.post.update({
       where: {
         id: Number(req.params.postId),
         author_id: req.user.id,
       },
+      data: {
+        isDeleted: true,
+      },
     });
+
     return res.json({ deleted_postId: deletedPost.id });
   } catch (e) {
     if (e.code === 'P2025') return res.status(403).json('Forbidden');
@@ -105,77 +94,56 @@ exports.deletePost = async (req, res, next) => {
 
 exports.editPost = async (req, res, next) => {
   try {
-    const oldPost = await client.post.findUnique({
+    const lastSegments = await client.segment.findMany({
       where: {
-        id: Number(req.params.postId),
-        author_id: req.user.id,
+        posts: {
+          some: {
+            id: Number(req.params.postId),
+          },
+        },
+      },
+      orderBy: {
+        id: 'desc',
       },
       select: {
         id: true,
-        parent_id: true,
-        tags: true,
-        segments: {
-          orderBy: {
-            created_at: 'asc',
-          },
-        },
+        author_id: true,
       },
+      take: 2,
     });
 
-    const post_tags = oldPost.tags.map((el) => ({
-      id: el.id,
-    }));
-
-    if (
-      !oldPost ||
-      oldPost.segments[oldPost.segments.length - 1].author_id !== req.user.id
-    ) {
-      throw new Error('Forbidden');
-    }
-
-    // create new post and delete the old one
-    const originalSegments = oldPost.segments.map((el) => ({
-      id: el.id,
-    }));
-    originalSegments.pop();
-
-    const updatedPost = await client.post.create({
-      data: {
-        author_id: req.user.id,
-        parent_id: oldPost.parent_id,
-        segments: {
-          connect: originalSegments,
-          create: {
-            author_id: req.user.id,
-            content: req.body.content,
-            post_type: req.body.type,
-          },
-        },
-        tags: {
-          connect: post_tags,
-        },
-      },
-    });
-
-    // update every reblog of the old post to point to the new one
-    await client.post.updateMany({
-      where: {
-        parent_id: Number(req.params.postId),
-      },
-      data: {
-        parent_id: updatedPost.id,
-      },
-    });
-
-    await client.post.deleteMany({
+    const updateObj = {
       where: {
         id: Number(req.params.postId),
+        author_id: req.user.id,
       },
-    });
+      data: {
+        segments: {},
+      },
+    };
+
+    if (!lastSegments.length && !req.body.content) {
+      throw new Error('Cannot submit empty post');
+    }
+
+    if (lastSegments[0].author_id === req.user.id) {
+      updateObj.data.segments.disconnect = {
+        id: lastSegments[0].id,
+      };
+    }
+
+    if (req.body.content) {
+      updateObj.data.segments.create = {
+        author_id: req.user.id,
+        content: req.body.content,
+        post_type: req.body.type,
+      };
+    }
+
+    const updatedPost = await client.post.update(updateObj);
 
     return res.json({ edited_postId: updatedPost.id });
   } catch (e) {
-    console.error(e);
     return next(e);
   }
 };
@@ -183,7 +151,9 @@ exports.editPost = async (req, res, next) => {
 exports.getFollowersPost = async (req, res, next) => {
   try {
     const posts = await client.post.findMany({
+      take: 10,
       where: {
+        isDeleted: false,
         OR: [
           {
             author_id: Number(req.user.id),
@@ -237,9 +207,17 @@ exports.getFollowersPost = async (req, res, next) => {
             id: 'asc',
           },
         },
+        usersLiked: {
+          where: {
+            user_id: req.user.id,
+          },
+          select: {
+            id: true,
+          },
+        },
         _count: {
           select: {
-            likes: true,
+            usersLiked: true,
             replies: true,
             children: true,
           },
@@ -248,7 +226,7 @@ exports.getFollowersPost = async (req, res, next) => {
           select: {
             _count: {
               select: {
-                likes: true,
+                usersLiked: true,
                 replies: true,
                 children: true,
               },
@@ -267,8 +245,10 @@ exports.getFollowersPost = async (req, res, next) => {
 exports.getUsersPosts = async (req, res, next) => {
   try {
     const usersPosts = await client.post.findMany({
+      take: 10,
       where: {
         author_id: Number(req.params.userId),
+        isDeleted: false,
       },
       orderBy: {
         id: 'desc',
@@ -310,7 +290,7 @@ exports.getUsersPosts = async (req, res, next) => {
         },
         _count: {
           select: {
-            likes: true,
+            usersLiked: true,
             replies: true,
             children: true,
           },
@@ -319,7 +299,7 @@ exports.getUsersPosts = async (req, res, next) => {
           select: {
             _count: {
               select: {
-                likes: true,
+                usersLiked: true,
                 replies: true,
                 children: true,
               },
@@ -341,6 +321,7 @@ exports.getSinglePost = async (req, res, next) => {
     const post = await client.post.findUnique({
       where: {
         id: Number(req.params.postId),
+        isDeleted: false,
       },
       include: {
         tags: true,
@@ -363,7 +344,7 @@ exports.getSinglePost = async (req, res, next) => {
         _count: {
           select: {
             replies: true,
-            likes: true,
+            usersLiked: true,
             children: true,
           },
         },
@@ -371,7 +352,7 @@ exports.getSinglePost = async (req, res, next) => {
           select: {
             _count: {
               select: {
-                likes: true,
+                usersLiked: true,
                 replies: true,
                 children: true,
               },

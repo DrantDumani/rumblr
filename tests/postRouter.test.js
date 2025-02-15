@@ -293,7 +293,7 @@ describe('Editing posts', () => {
 
     expect(response.statusCode).toBe(200);
     expect(typeof response.body.edited_postId).toBe('number');
-    expect(typeof response.body.edited_postId).not.toBe(testPost.id);
+    expect(response.body.edited_postId).toBe(testPost.id);
 
     await client.post.deleteMany({
       where: {
