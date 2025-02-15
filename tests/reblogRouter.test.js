@@ -39,9 +39,11 @@ describe('Successful reblog', () => {
     const response = await request(app)
       .post(`/${postToReblog.id}`)
       .auth(token, { type: 'bearer' })
-      .field('type', 'text')
-      .field('content', 'Lorem Ipsum')
-      .field('tags[]', ['no', 'more', 'music']);
+      .send({
+        type: 'text',
+        content: 'Lorem Ipsum',
+        tags: ['no', 'more', 'music'],
+      });
 
     expect(response.statusCode).toBe(200);
     expect(response.body.post_id).not.toBe(postToReblog.id);
