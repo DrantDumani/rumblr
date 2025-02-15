@@ -20,7 +20,7 @@ model User {
   posts Post[] @relation(name: "Author")
   segments Segment[]
   replies Reply[]
-  likes Post[] @relation(name: "LikedPosts")
+  postsLiked LikesOnPost[]
   followers Follow[] @relation("Followers")
   following Follow[] @relation("Following")
   user1_dm Dm[] @relation("User1")
@@ -54,13 +54,15 @@ model Post {
   author_id   Int
   parent_id   Int?
   prev_id     Int?
+  isDeleted Boolean @default(false)
   previous Post? @relation(name: "PreviousPost", fields: [prev_id], references: [id])
   next     Post[] @relation(name: "PreviousPost")
   author User  @relation(name: "Author", fields: [author_id], references: [id])
   parent Post? @relation(name: "Reblogs", fields: [parent_id], references: [id])
   children Post[]  @relation(name: "Reblogs")
   replies Reply[]
-  likes User[] @relation(name: "LikedPosts")
+  usersLiked LikesOnPost[] @relation(name: "ParentLikes")
+  selfLiked LikesOnPost[] @relation(name: "SelfLikes")
   segments Segment[]
   tags Tag[]
 }
@@ -88,6 +90,17 @@ model Tag {
   id  Int @id @default(autoincrement())
   content String @unique @db.VarChar(140)
   posts Post[]
+}
+
+model LikesOnPost {
+  id Int @id @default(autoincrement())
+  user User @relation(fields: [user_id], references: [id])
+  user_id Int
+  post Post @relation(name: "ParentLikes", fields: [parent_id], references: [id], onDelete: Cascade, map: "like_parent_fk")
+  post_id Int
+  parent_id Int
+  selfPost Post @relation(name: "SelfLikes" ,fields: [post_id], references: [id], onDelete: Cascade, map: "like_post_fk")
+  @@unique([user_id, post_id])
 }
 
 enum post_type {

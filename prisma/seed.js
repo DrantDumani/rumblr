@@ -99,17 +99,15 @@ async function main() {
     },
     update: {},
     create: {
-      // follower_id_following_id: {
       follower_id: rotty.id,
       following_id: shantae.id,
-      // },
     },
   });
 
   await prisma.post.deleteMany({});
   await prisma.segment.deleteMany({});
 
-  await prisma.post.create({
+  const geniePost = await prisma.post.create({
     data: {
       author_id: shantae.id,
       created_at: new Date(1735361053167),
@@ -130,11 +128,14 @@ async function main() {
           },
         },
       },
-      likes: {
-        connect: {
-          id: rotty.id,
-        },
-      },
+    },
+  });
+
+  await prisma.likesOnPost.create({
+    data: {
+      user_id: rotty.id,
+      post_id: geniePost.id,
+      parent_id: geniePost.id,
     },
   });
 
@@ -197,7 +198,7 @@ async function main() {
     },
   });
 
-  await prisma.post.create({
+  const rottyPost = await prisma.post.create({
     data: {
       author_id: rotty.id,
       created_at: new Date(1735220000000),
@@ -214,11 +215,6 @@ async function main() {
           content: "I hope you're just talking about me being smart...",
         },
       },
-      likes: {
-        connect: {
-          id: shantae.id,
-        },
-      },
       tags: {
         connectOrCreate: {
           create: {
@@ -229,6 +225,14 @@ async function main() {
           },
         },
       },
+    },
+  });
+
+  await prisma.likesOnPost.create({
+    data: {
+      user_id: shantae.id,
+      post_id: rottyPost.id,
+      parent_id: rottyPost.id,
     },
   });
 
