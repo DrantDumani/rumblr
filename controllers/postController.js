@@ -94,6 +94,7 @@ exports.deletePost = async (req, res, next) => {
 
 exports.editPost = async (req, res, next) => {
   try {
+    console.log('editing posts...');
     const postToEdit = await client.post.findUnique({
       where: {
         id: Number(req.params.postId),
@@ -144,6 +145,68 @@ exports.editPost = async (req, res, next) => {
         segments: {},
         tags: {},
       },
+      include: {
+        author: {
+          select: {
+            id: true,
+            uname: true,
+            pfp: true,
+          },
+        },
+        previous: {
+          select: {
+            author: {
+              select: {
+                uname: true,
+              },
+            },
+          },
+        },
+        segments: {
+          orderBy: {
+            id: 'asc',
+          },
+          include: {
+            author: {
+              select: {
+                uname: true,
+                pfp: true,
+              },
+            },
+          },
+        },
+        tags: {
+          orderBy: {
+            id: 'asc',
+          },
+        },
+        usersLiked: {
+          where: {
+            user_id: req.user.id,
+          },
+          select: {
+            id: true,
+          },
+        },
+        _count: {
+          select: {
+            usersLiked: true,
+            replies: true,
+            children: true,
+          },
+        },
+        parent: {
+          select: {
+            _count: {
+              select: {
+                usersLiked: true,
+                replies: true,
+                children: true,
+              },
+            },
+          },
+        },
+      },
     };
 
     updateObj.data.tags.disconnect = removedTags.map((t) => ({
@@ -168,7 +231,7 @@ exports.editPost = async (req, res, next) => {
 
     const updatedPost = await client.post.update(updateObj);
 
-    return res.json({ edited_postId: updatedPost.id });
+    return res.json(updatedPost);
   } catch (e) {
     console.error(e);
     return next(e);
@@ -233,6 +296,68 @@ exports.editMediaPost = async (req, res, next) => {
             },
           },
           tags: {},
+        },
+        include: {
+          author: {
+            select: {
+              id: true,
+              uname: true,
+              pfp: true,
+            },
+          },
+          previous: {
+            select: {
+              author: {
+                select: {
+                  uname: true,
+                },
+              },
+            },
+          },
+          segments: {
+            orderBy: {
+              id: 'asc',
+            },
+            include: {
+              author: {
+                select: {
+                  uname: true,
+                  pfp: true,
+                },
+              },
+            },
+          },
+          tags: {
+            orderBy: {
+              id: 'asc',
+            },
+          },
+          usersLiked: {
+            where: {
+              user_id: req.user.id,
+            },
+            select: {
+              id: true,
+            },
+          },
+          _count: {
+            select: {
+              usersLiked: true,
+              replies: true,
+              children: true,
+            },
+          },
+          parent: {
+            select: {
+              _count: {
+                select: {
+                  usersLiked: true,
+                  replies: true,
+                  children: true,
+                },
+              },
+            },
+          },
         },
       };
 

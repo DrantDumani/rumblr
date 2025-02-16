@@ -291,8 +291,8 @@ describe('Editing posts', () => {
       .send({ type: 'text', content: 'Lorem Ipsum', tags: [] });
 
     expect(response.statusCode).toBe(200);
-    expect(typeof response.body.edited_postId).toBe('number');
-    expect(response.body.edited_postId).toBe(testPost.id);
+    expect(typeof response.body.id).toBe('number');
+    expect(response.body.id).toBe(testPost.id);
 
     await client.post.deleteMany({
       where: {
