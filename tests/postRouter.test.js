@@ -288,8 +288,7 @@ describe('Editing posts', () => {
     const response = await request(app)
       .put(`/${testPost.id}`)
       .auth(token, { type: 'bearer' })
-      .field('type', 'text')
-      .field('content', 'Lorem Ipsum');
+      .send({ type: 'text', content: 'Lorem Ipsum', tags: [] });
 
     expect(response.statusCode).toBe(200);
     expect(typeof response.body.edited_postId).toBe('number');

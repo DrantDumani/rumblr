@@ -22,7 +22,11 @@ exports.postRules = () => [
 // content is optional for reblogs
 exports.reblogRules = () => [
   body('type').isString().trim().isIn(['text', 'quote', 'link', 'chat']),
-  body('content').optional().isString().trim().isLength({ min: 1, max: 4000 }),
+  body('content')
+    .optional({ values: 'falsy' })
+    .isString()
+    .trim()
+    .isLength({ min: 1, max: 4000 }),
   body('tags.*').isString().trim().isLength({ max: 140 }),
 ];
 
@@ -44,7 +48,6 @@ exports.checkCursor = () => [query('cursor').optional().isInt()];
 
 exports.validateFields = (req, res, next) => {
   const errors = validationResult(req);
-  console.log(errors);
   if (errors.isEmpty()) return next();
   return res.status(400).json(errors);
 };

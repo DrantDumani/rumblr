@@ -43,7 +43,36 @@ router.post(
 
 router.delete('/:postId', postController.deletePost);
 
-router.put('/:postId', uploadImgPost.single('file'), postController.editPost);
+router.put(
+  '/:postId',
+  validators.postRules(),
+  validators.validateFields,
+  postController.editPost
+);
+
+router.put(
+  '/:postId/photo',
+  uploadImgPost.single('image'),
+  validators.postMediaRules(),
+  validators.validateFields,
+  postController.editMediaPost
+);
+
+router.put(
+  '/:postId/audio',
+  uploadImgPost.single('audio'),
+  validators.postMediaRules(),
+  validators.validateFields,
+  postController.editMediaPost
+);
+
+router.put(
+  '/:postId/video',
+  uploadImgPost.single('video'),
+  validators.postMediaRules(),
+  validators.validateFields,
+  postController.editMediaPost
+);
 
 router.get('/', postController.getFollowersPost);
 

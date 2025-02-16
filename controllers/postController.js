@@ -94,43 +94,65 @@ exports.deletePost = async (req, res, next) => {
 
 exports.editPost = async (req, res, next) => {
   try {
-    const lastSegments = await client.segment.findMany({
+    const postToEdit = await client.post.findUnique({
       where: {
-        posts: {
-          some: {
-            id: Number(req.params.postId),
-          },
-        },
-      },
-      orderBy: {
-        id: 'desc',
+        id: Number(req.params.postId),
+        author_id: req.user.id,
+        isDeleted: false,
       },
       select: {
         id: true,
-        author_id: true,
+        segments: {
+          orderBy: {
+            id: 'asc',
+          },
+        },
+        tags: true,
       },
-      take: 2,
     });
+
+    if (
+      !postToEdit ||
+      postToEdit.segments[postToEdit.segments.length - 1].author_id !==
+        req.user.id
+    ) {
+      throw new Error('Forbidden');
+    }
+
+    if (
+      postToEdit.segments.length === 1 &&
+      postToEdit.segments[postToEdit.segments.length - 1].author_id ===
+        req.user.id &&
+      !req.body.content
+    ) {
+      throw new Error('Cannot submit empty post');
+    }
+
+    const tagMap = {};
+    req.body.tags.forEach((t) => {
+      tagMap[t] = true;
+    });
+
+    const removedTags = postToEdit.tags.filter((t) => !tagMap[t]);
 
     const updateObj = {
       where: {
-        id: Number(req.params.postId),
+        id: postToEdit.id,
         author_id: req.user.id,
       },
       data: {
         segments: {},
+        tags: {},
       },
     };
 
-    if (!lastSegments.length && !req.body.content) {
-      throw new Error('Cannot submit empty post');
-    }
-
-    if (lastSegments[0].author_id === req.user.id) {
-      updateObj.data.segments.disconnect = {
-        id: lastSegments[0].id,
-      };
-    }
+    updateObj.data.tags.disconnect = removedTags.map((t) => ({
+      content: t.content,
+    }));
+    updateObj.data.tags.connectOrCreate = req.body.tags.map((t) => ({
+      where: { content: t },
+      create: { content: t },
+    }));
 
     if (req.body.content) {
       updateObj.data.segments.create = {
@@ -140,9 +162,96 @@ exports.editPost = async (req, res, next) => {
       };
     }
 
+    updateObj.data.segments.disconnect = {
+      id: postToEdit.segments[postToEdit.segments.length - 1].id,
+    };
+
     const updatedPost = await client.post.update(updateObj);
 
     return res.json({ edited_postId: updatedPost.id });
+  } catch (e) {
+    console.error(e);
+    return next(e);
+  }
+};
+
+exports.editMediaPost = async (req, res, next) => {
+  // same as editing a post, only the user MUST submit a file
+
+  try {
+    if (req.file) {
+      let resource_type = '';
+      if (req.body.type === 'photo') resource_type = 'image';
+      else resource_type = 'video';
+
+      const postToEdit = await client.post.findUnique({
+        where: {
+          id: Number(req.params.postId),
+          author_id: req.user.id,
+          isDeleted: false,
+        },
+        select: {
+          id: true,
+          segments: {
+            orderBy: {
+              id: 'asc',
+            },
+          },
+          tags: true,
+        },
+      });
+
+      if (
+        !postToEdit ||
+        postToEdit.segments[postToEdit.segments.length - 1].author_id !==
+          req.user.id
+      ) {
+        throw new Error('Forbidden');
+      }
+
+      // if the post can be edited, then upload the file
+      const fileURL = await handleUpload(req.file, resource_type);
+
+      const tagMap = {};
+      req.body.tags.forEach((t) => {
+        tagMap[t] = true;
+      });
+
+      const removedTags = postToEdit.tags.filter((t) => !tagMap[t]);
+
+      const updateObj = {
+        where: {
+          id: postToEdit.id,
+          author_id: req.user.id,
+        },
+        data: {
+          segments: {
+            create: {
+              author_id: req.user.id,
+              post_type: req.body.type,
+              content: fileURL,
+            },
+          },
+          tags: {},
+        },
+      };
+
+      updateObj.data.tags.disconnect = removedTags.map((t) => ({
+        content: t.content,
+      }));
+      updateObj.data.tags.connectOrCreate = req.body.tags.map((t) => ({
+        where: { content: t },
+        create: { content: t },
+      }));
+
+      updateObj.data.segments.disconnect = {
+        id: postToEdit.segments[postToEdit.segments.length - 1].id,
+      };
+
+      const updatedPost = await client.post.update(updateObj);
+
+      return res.json({ edited_postId: updatedPost.id });
+    }
   } catch (e) {
     return next(e);
   }
@@ -238,6 +347,7 @@ exports.getFollowersPost = async (req, res, next) => {
 
     return res.json(posts);
   } catch (e) {
+    console.error(e);
     return next(e);
   }
 };
