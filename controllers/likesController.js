@@ -68,7 +68,7 @@ exports.getLikedPosts = async (req, res, next) => {
       },
     });
 
-    return res.json(likedPosts);
+    return res.json({ posts: likedPosts });
   } catch (e) {
     return next(e);
   }

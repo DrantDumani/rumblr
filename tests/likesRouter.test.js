@@ -102,6 +102,6 @@ describe('Like Route', () => {
       .auth(token, { type: 'bearer' });
 
     expect(response.statusCode).toBe(200);
-    expect(Array.isArray(response.body)).toBe(true);
+    expect(Array.isArray(response.body.posts)).toBe(true);
   });
 });

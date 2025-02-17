@@ -471,7 +471,7 @@ exports.getFollowersPost = async (req, res, next) => {
       },
     });
 
-    return res.json(posts);
+    return res.json({ posts: posts });
   } catch (e) {
     console.error(e);
     return next(e);
@@ -545,7 +545,7 @@ exports.getUsersPosts = async (req, res, next) => {
       },
     });
 
-    return res.json(usersPosts);
+    return res.json({ posts: usersPosts });
   } catch (e) {
     console.error(e);
     return next(e);
