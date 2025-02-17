@@ -16,7 +16,11 @@ exports.likePost = async (req, res, next) => {
       },
     });
 
-    return res.json({ liked: newLike.post_id, id: newLike.id });
+    return res.json({
+      liked: newLike.post_id,
+      id: newLike.id,
+      user_id: newLike.user_id,
+    });
   } catch (e) {
     return next(e);
   }

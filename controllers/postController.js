@@ -447,6 +447,7 @@ exports.getFollowersPost = async (req, res, next) => {
           },
           select: {
             id: true,
+            user_id: true,
           },
         },
         _count: {
