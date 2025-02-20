@@ -66,7 +66,7 @@ exports.reblogPostWithMedia = async (req, res, next) => {
       if (req.body.type === 'photo') resource_type = 'image';
       else resource_type = 'video';
 
-      const fileURL = await handleUpload(req.file, resource_type);
+      const fileURL = (await handleUpload(req.file, resource_type)).secure_url;
 
       const postToReblog = await client.post.findUnique({
         where: {

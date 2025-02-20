@@ -13,6 +13,6 @@ exports.handleUpload = async (file, type) => {
   const uploadedMedia = await cloudinary.uploader.upload(dataURI, {
     resource_type: type,
   });
-  const { url } = uploadedMedia;
-  return url;
+  const { secure_url, public_id } = uploadedMedia;
+  return { secure_url, public_id };
 };
