@@ -2,7 +2,7 @@ const router = require('express').Router();
 const userController = require('../controllers/userController');
 const validators = require('../middleware/validators');
 const passport = require('../middleware/passportConfig');
-const { uploadImgPost } = require('../middleware/multer');
+const { uploadUserProfile } = require('../middleware/multer');
 
 router.post(
   '/',
@@ -28,7 +28,16 @@ router.get(
 router.put(
   '/',
   passport.authenticate('jwt', { session: false }),
-  uploadImgPost.single(),
+  uploadUserProfile.fields([
+    {
+      name: 'pfp',
+      maxCount: 1,
+    },
+    {
+      name: 'header',
+      maxCount: 1,
+    },
+  ]),
   userController.editUser
 );
 

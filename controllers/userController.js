@@ -1,4 +1,5 @@
 const client = require('../prisma/client');
+const { handleUpload } = require('../utils/cloudinary');
 const sign_jwt = require('../utils/jwt');
 const bcrypt = require('bcrypt');
 
@@ -60,16 +61,50 @@ exports.getUser = async (req, res, next) => {
 
 exports.editUser = async (req, res, next) => {
   try {
+    const updateObj = {};
+    if (req.files.pfp || req.files.header) {
+      const { pfp, header } = req.files;
+      let pfpResp = null;
+      let headerImgResp = null;
+
+      if (pfp) {
+        pfpResp = await handleUpload(pfp[0], 'image', req.user.pfp_id || '');
+        updateObj.pfp = pfpResp.secure_url;
+        if (!req.user.pfp_id) {
+          updateObj.pfp_id = pfpResp.public_id;
+        }
+      }
+      if (header) {
+        headerImgResp = await handleUpload(
+          header[0],
+          'image',
+          req.user.h_img_id || ''
+        );
+        updateObj.h_img = headerImgResp.secure_url;
+        if (!req.user.h_img_id) {
+          updateObj.h_img_id = headerImgResp.public_id;
+        }
+      }
+    }
+
+    updateObj.about = req.body.about;
+
     const updatedUser = await client.user.update({
       where: {
         id: req.user.id,
       },
-      data: {
-        about: req.body.about,
-      },
+      data: updateObj,
     });
 
-    return res.json({ about: updatedUser.about });
+    const token = sign_jwt(updatedUser);
+
+    return res.json({
+      uname: updatedUser.uname,
+      about: updatedUser.about,
+      h_img: updatedUser.h_img,
+      pfp: updatedUser.pfp,
+      newToken: token,
+    });
   } catch (e) {
     return next(e);
   }

@@ -30,4 +30,14 @@ exports.uploadVideoPost = multer({
   },
 });
 
+exports.uploadUserProfile = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 2097152, files: 2 },
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype.match(/^image/)) {
+      cb(null, true);
+    } else cb(null, false);
+  },
+});
+
 exports.upload = multer({});
