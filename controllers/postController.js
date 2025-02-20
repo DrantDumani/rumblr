@@ -441,7 +441,7 @@ exports.getFollowersPost = async (req, res, next) => {
             id: 'asc',
           },
         },
-        usersLiked: {
+        selfLiked: {
           where: {
             user_id: req.user.id,
           },

@@ -45,24 +45,81 @@ exports.unlikePost = async (req, res, next) => {
 
 exports.getLikedPosts = async (req, res, next) => {
   try {
-    const likedPosts = await client.post.findMany({
+    const likedPosts = await client.likesOnPost.findMany({
       take: 10,
       where: {
-        usersLiked: {
-          some: {
-            user_id: req.user.id,
-          },
+        user_id: req.user.id,
+        post: {
+          isDeleted: false,
         },
-        isDeleted: false,
+      },
+      orderBy: {
+        id: 'desc',
       },
       include: {
-        segments: true,
-        usersLiked: {
-          select: {
-            id: true,
-          },
-          orderBy: {
-            id: 'desc',
+        selfPost: {
+          include: {
+            author: {
+              select: {
+                id: true,
+                uname: true,
+                pfp: true,
+              },
+            },
+            previous: {
+              select: {
+                author: {
+                  select: {
+                    uname: true,
+                  },
+                },
+              },
+            },
+            segments: {
+              orderBy: {
+                id: 'asc',
+              },
+              include: {
+                author: {
+                  select: {
+                    uname: true,
+                    pfp: true,
+                  },
+                },
+              },
+            },
+            tags: {
+              orderBy: {
+                id: 'asc',
+              },
+            },
+            selfLiked: {
+              where: {
+                user_id: req.user.id,
+              },
+              select: {
+                id: true,
+                user_id: true,
+              },
+            },
+            _count: {
+              select: {
+                usersLiked: true,
+                replies: true,
+                children: true,
+              },
+            },
+            parent: {
+              select: {
+                _count: {
+                  select: {
+                    usersLiked: true,
+                    replies: true,
+                    children: true,
+                  },
+                },
+              },
+            },
           },
         },
       },
