@@ -43,10 +43,16 @@ exports.getUser = async (req, res, next) => {
         id: Number(req.params.userId),
       },
       select: {
+        id: true,
         uname: true,
         h_img: true,
         pfp: true,
         about: true,
+        following: {
+          where: {
+            follower_id: req.user.id,
+          },
+        },
       },
     });
 

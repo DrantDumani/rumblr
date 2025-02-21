@@ -7,6 +7,7 @@ const userRouter = require('./routes/userRouter');
 const postRouter = require('./routes/postRouter');
 const reblogRouter = require('./routes/reblogRouter');
 const likeRouter = require('./routes/likesRouter');
+const followRouter = require('./routes/followerRouter');
 
 const port = process.env.PORT || 3000;
 
@@ -24,6 +25,7 @@ app.use('/users', userRouter);
 app.use('/posts', postRouter);
 app.use('/reblogs', reblogRouter);
 app.use('/likes', likeRouter);
+app.use('/followers', followRouter);
 
 app.use((err, req) => {
   if (req.app.get('env') === 'development') console.error(err);
