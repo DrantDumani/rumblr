@@ -524,6 +524,15 @@ exports.getUsersPosts = async (req, res, next) => {
             id: 'asc',
           },
         },
+        selfLiked: {
+          where: {
+            user_id: req.user.id,
+          },
+          select: {
+            id: true,
+            user_id: true,
+          },
+        },
         _count: {
           select: {
             usersLiked: true,
@@ -531,7 +540,7 @@ exports.getUsersPosts = async (req, res, next) => {
             children: true,
           },
         },
-        children: {
+        parent: {
           select: {
             _count: {
               select: {
