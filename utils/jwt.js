@@ -6,6 +6,7 @@ const sign_jwt = (user) => {
     username: user.uname,
     pfp_id: user.pfp_id,
     h_img_id: user.h_img_id,
+    pfp: user.pfp,
   };
 
   const token = jwt.sign(payload, process.env.SECRET, { expiresIn: '2 days' });
