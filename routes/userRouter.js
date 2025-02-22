@@ -20,6 +20,12 @@ router.post(
 );
 
 router.get(
+  '/',
+  passport.authenticate('jwt', { session: false }),
+  userController.getAllUsers
+);
+
+router.get(
   '/:userId',
   passport.authenticate('jwt', { session: false }),
   userController.getUser

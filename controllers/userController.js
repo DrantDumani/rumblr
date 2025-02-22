@@ -65,6 +65,34 @@ exports.getUser = async (req, res, next) => {
   }
 };
 
+exports.getAllUsers = async (req, res, next) => {
+  try {
+    const allUsers = await client.user.findMany({
+      where: {
+        id: {
+          not: req.user.id,
+        },
+      },
+      select: {
+        id: true,
+        uname: true,
+        h_img: true,
+        pfp: true,
+        about: true,
+        following: {
+          where: {
+            follower_id: req.user.id,
+          },
+        },
+      },
+    });
+
+    return res.json(allUsers);
+  } catch (e) {
+    return next(e);
+  }
+};
+
 exports.editUser = async (req, res, next) => {
   try {
     const updateObj = {};
