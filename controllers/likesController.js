@@ -118,6 +118,7 @@ exports.getLikedPosts = async (req, res, next) => {
                     children: true,
                   },
                 },
+                author_id: true,
               },
             },
           },
