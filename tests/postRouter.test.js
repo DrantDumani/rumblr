@@ -371,4 +371,102 @@ describe('Get posts', () => {
     expect(response.statusCode).toBe(200);
     expect(Array.isArray(response.body.posts)).toBe(true);
   });
+
+  it('Gets array of posts tagged with tag param', async () => {
+    const userA = await client.user.findUnique({
+      where: { uname: 'userA' },
+    });
+
+    const token = signJwt(userA);
+    const tagName = 'test tag';
+    const testPost = await client.post.create({
+      data: {
+        author_id: userA.id,
+        segments: {
+          create: {
+            author_id: userA.id,
+            post_type: 'text',
+            content: 'This is a test post',
+          },
+        },
+        tags: {
+          connectOrCreate: {
+            where: { content: tagName },
+            create: { content: tagName },
+          },
+        },
+      },
+    });
+
+    const response = await request(app)
+      .get(`/tag?tagName=${tagName}`)
+      .auth(token, { type: 'bearer' });
+
+    expect(response.statusCode).toBe(200);
+    expect(Array.isArray(response.body)).toBe(true);
+    expect(response.body.findIndex((p) => p.id === testPost.id)).not.toBe(-1);
+
+    await client.post.delete({
+      where: { id: testPost.id },
+    });
+    await client.tag.delete({
+      where: { content: tagName },
+    });
+  });
+
+  it('Does not include any post without the related tag', async () => {
+    const userA = await client.user.findUnique({
+      where: { uname: 'userA' },
+    });
+
+    const token = signJwt(userA);
+    const tagName = 'test tag';
+    const testPost = await client.post.create({
+      data: {
+        author_id: userA.id,
+        segments: {
+          create: {
+            author_id: userA.id,
+            post_type: 'text',
+            content: 'This is a test post',
+          },
+        },
+        tags: {
+          connectOrCreate: {
+            where: { content: tagName },
+            create: { content: tagName },
+          },
+        },
+      },
+    });
+
+    const response = await request(app)
+      .get(`/tag?tagName=${tagName + 'invalid'}`)
+      .auth(token, { type: 'bearer' });
+
+    expect(response.statusCode).toBe(200);
+    expect(Array.isArray(response.body)).toBe(true);
+    expect(response.body.findIndex((p) => p.id === testPost.id)).toBe(-1);
+
+    await client.post.delete({
+      where: { id: testPost.id },
+    });
+    await client.tag.delete({
+      where: { content: tagName },
+    });
+  });
+
+  it('Returns 400 if no tag is supplied', async () => {
+    const userA = await client.user.findUnique({
+      where: { uname: 'userA' },
+    });
+
+    const token = signJwt(userA);
+
+    const response = await request(app)
+      .get(`/tag?tagName=`)
+      .auth(token, { type: 'bearer' });
+
+    expect(response.statusCode).toBe(400);
+  });
 });

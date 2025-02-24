@@ -46,6 +46,10 @@ exports.dmRules = () => [
 
 exports.checkCursor = () => [query('cursor').optional().isInt()];
 
+exports.searchRules = () => [
+  query('tagName').isString().trim().isLength({ min: 1 }),
+];
+
 exports.validateFields = (req, res, next) => {
   const errors = validationResult(req);
   if (errors.isEmpty()) return next();

@@ -94,7 +94,6 @@ exports.deletePost = async (req, res, next) => {
 
 exports.editPost = async (req, res, next) => {
   try {
-    console.log('editing posts...');
     const postToEdit = await client.post.findUnique({
       where: {
         id: Number(req.params.postId),
@@ -180,12 +179,13 @@ exports.editPost = async (req, res, next) => {
             id: 'asc',
           },
         },
-        usersLiked: {
+        selfLiked: {
           where: {
             user_id: req.user.id,
           },
           select: {
             id: true,
+            user_id: true,
           },
         },
         _count: {
@@ -204,6 +204,7 @@ exports.editPost = async (req, res, next) => {
                 children: true,
               },
             },
+            author_id: true,
           },
         },
       },
@@ -332,12 +333,13 @@ exports.editMediaPost = async (req, res, next) => {
               id: 'asc',
             },
           },
-          usersLiked: {
+          selfLiked: {
             where: {
               user_id: req.user.id,
             },
             select: {
               id: true,
+              user_id: true,
             },
           },
           _count: {
@@ -356,6 +358,7 @@ exports.editMediaPost = async (req, res, next) => {
                   children: true,
                 },
               },
+              author_id: true,
             },
           },
         },
@@ -559,6 +562,92 @@ exports.getUsersPosts = async (req, res, next) => {
     return res.json({ posts: usersPosts });
   } catch (e) {
     console.error(e);
+    return next(e);
+  }
+};
+
+exports.getTaggedPosts = async (req, res, next) => {
+  try {
+    const taggedPosts = await client.post.findMany({
+      take: 10,
+      where: {
+        isDeleted: false,
+        tags: {
+          some: {
+            content: req.query.tagName,
+          },
+        },
+      },
+      orderBy: {
+        id: 'desc',
+      },
+      include: {
+        author: {
+          select: {
+            id: true,
+            uname: true,
+            pfp: true,
+          },
+        },
+        previous: {
+          select: {
+            author: {
+              select: {
+                uname: true,
+              },
+            },
+          },
+        },
+        segments: {
+          orderBy: {
+            id: 'asc',
+          },
+          include: {
+            author: {
+              select: {
+                uname: true,
+                pfp: true,
+              },
+            },
+          },
+        },
+        tags: {
+          orderBy: {
+            id: 'asc',
+          },
+        },
+        selfLiked: {
+          where: {
+            user_id: req.user.id,
+          },
+          select: {
+            id: true,
+            user_id: true,
+          },
+        },
+        _count: {
+          select: {
+            usersLiked: true,
+            replies: true,
+            children: true,
+          },
+        },
+        parent: {
+          select: {
+            _count: {
+              select: {
+                usersLiked: true,
+                replies: true,
+                children: true,
+              },
+            },
+            author_id: true,
+          },
+        },
+      },
+    });
+    return res.json(taggedPosts);
+  } catch (e) {
     return next(e);
   }
 };

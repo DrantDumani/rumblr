@@ -76,8 +76,14 @@ router.put(
 
 router.get('/', postController.getFollowersPost);
 
-router.get('/:postId', postController.getSinglePost);
-
 router.get('/user/:userId', postController.getUsersPosts);
 
+router.get(
+  '/tag',
+  validators.searchRules(),
+  validators.validateFields,
+  postController.getTaggedPosts
+);
+
+router.get('/:postId', postController.getSinglePost);
 module.exports = router;
