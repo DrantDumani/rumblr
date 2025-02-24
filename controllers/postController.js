@@ -593,6 +593,7 @@ exports.getTaggedPosts = async (req, res, next) => {
             content: req.query.tagName,
           },
         },
+        parent_id: null,
       },
       orderBy: {
         id: 'desc',
