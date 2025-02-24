@@ -660,10 +660,9 @@ exports.getSinglePost = async (req, res, next) => {
         isDeleted: false,
       },
       include: {
-        tags: true,
-        segments: true,
         author: {
           select: {
+            id: true,
             uname: true,
             pfp: true,
           },
@@ -677,10 +676,37 @@ exports.getSinglePost = async (req, res, next) => {
             },
           },
         },
+        segments: {
+          orderBy: {
+            id: 'asc',
+          },
+          include: {
+            author: {
+              select: {
+                uname: true,
+                pfp: true,
+              },
+            },
+          },
+        },
+        tags: {
+          orderBy: {
+            id: 'asc',
+          },
+        },
+        selfLiked: {
+          where: {
+            user_id: req.user.id,
+          },
+          select: {
+            id: true,
+            user_id: true,
+          },
+        },
         _count: {
           select: {
-            replies: true,
             usersLiked: true,
+            replies: true,
             children: true,
           },
         },
