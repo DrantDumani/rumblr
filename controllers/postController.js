@@ -387,8 +387,16 @@ exports.editMediaPost = async (req, res, next) => {
 
 exports.getFollowersPost = async (req, res, next) => {
   try {
+    const cursor = Number(req.query.cursor);
+
     const posts = await client.post.findMany({
       take: 10,
+      ...(cursor && {
+        cursor: {
+          id: cursor,
+        },
+      }),
+      ...(cursor && { skip: 1 }),
       where: {
         isDeleted: false,
         OR: [
@@ -484,8 +492,12 @@ exports.getFollowersPost = async (req, res, next) => {
 
 exports.getUsersPosts = async (req, res, next) => {
   try {
+    const cursor = Number(req.query.cursor);
+
     const usersPosts = await client.post.findMany({
       take: 10,
+      ...(cursor && { cursor: { id: cursor } }),
+      ...(cursor && { skip: 1 }),
       where: {
         author_id: Number(req.params.userId),
         isDeleted: false,
@@ -568,8 +580,12 @@ exports.getUsersPosts = async (req, res, next) => {
 
 exports.getTaggedPosts = async (req, res, next) => {
   try {
+    const cursor = Number(req.query.cursor);
+
     const taggedPosts = await client.post.findMany({
       take: 10,
+      ...(cursor && { cursor: { id: cursor } }),
+      ...(cursor && { skip: 1 }),
       where: {
         isDeleted: false,
         tags: {

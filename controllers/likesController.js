@@ -45,8 +45,12 @@ exports.unlikePost = async (req, res, next) => {
 
 exports.getLikedPosts = async (req, res, next) => {
   try {
+    const cursor = Number(req.query.cursor);
+
     const likedPosts = await client.likesOnPost.findMany({
       take: 10,
+      ...(cursor && { cursor: { id: cursor } }),
+      ...(cursor && { skip: 1 }),
       where: {
         user_id: req.user.id,
         post: {

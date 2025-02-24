@@ -74,9 +74,19 @@ router.put(
   postController.editMediaPost
 );
 
-router.get('/', postController.getFollowersPost);
+router.get(
+  '/',
+  validators.checkCursor(),
+  validators.validateFields,
+  postController.getFollowersPost
+);
 
-router.get('/user/:userId', postController.getUsersPosts);
+router.get(
+  '/user/:userId',
+  validators.checkCursor(),
+  validators.validateFields,
+  postController.getUsersPosts
+);
 
 router.get(
   '/tag',

@@ -48,6 +48,7 @@ exports.checkCursor = () => [query('cursor').optional().isInt()];
 
 exports.searchRules = () => [
   query('tagName').isString().trim().isLength({ min: 1 }),
+  query('cursor').optional().isInt(),
 ];
 
 exports.validateFields = (req, res, next) => {
