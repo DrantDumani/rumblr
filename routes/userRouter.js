@@ -22,6 +22,8 @@ router.post(
 router.get(
   '/',
   passport.authenticate('jwt', { session: false }),
+  validators.checkCursor(),
+  validators.validateFields,
   userController.getAllUsers
 );
 

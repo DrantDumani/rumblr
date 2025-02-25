@@ -67,7 +67,11 @@ exports.getUser = async (req, res, next) => {
 
 exports.getAllUsers = async (req, res, next) => {
   try {
+    const cursor = Number(req.query.cursor);
     const allUsers = await client.user.findMany({
+      take: 20,
+      ...(cursor && { cursor: { id: cursor } }),
+      ...(cursor && { skip: 1 }),
       where: {
         id: {
           not: req.user.id,
