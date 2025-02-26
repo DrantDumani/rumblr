@@ -7,109 +7,100 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model dms {
-  id                        Int    @id @default(autoincrement())
-  user1_id                  Int
-  user2_id                  Int
-  content                   String @db.VarChar(1000)
-  users_dms_user1_idTousers users  @relation("dms_user1_idTousers", fields: [user1_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  users_dms_user2_idTousers users  @relation("dms_user2_idTousers", fields: [user2_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+model User {
+  id          Int       @id @default(autoincrement())
+  email       String    @unique @db.VarChar(320)
+  uname       String    @unique @db.VarChar(20)
+  pw          String
+  pfp         String?
+  pfp_id      String?
+  h_img       String?
+  h_img_id    String?
+  about       String?   @db.VarChar(400)
+  posts Post[] @relation(name: "Author")
+  segments Segment[]
+  replies Reply[]
+  postsLiked LikesOnPost[]
+  followers Follow[] @relation("Followers")
+  following Follow[] @relation("Following")
+  user1_dm Dm[] @relation("User1")
+  user2_dm Dm[] @relation("User2")
+  sender Dm[] @relation("Sender")
 }
 
-/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
-model followers {
-  follower_id                         Int
-  following_id                        Int
-  users_followers_follower_idTousers  users @relation("followers_follower_idTousers", fields: [follower_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  users_followers_following_idTousers users @relation("followers_following_idTousers", fields: [following_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-
+model Follow {
+  follower_id   Int
+  following_id Int
+  followers User @relation("Followers", fields: [follower_id], references: [id])
+  following User @relation("Following", fields: [following_id], references: [id])
   @@id([follower_id, following_id])
 }
 
-model likes {
+model Dm {
+  id          Int       @id @default(autoincrement())
+  user1_id    Int
+  user2_id    Int
+  content     String    @db.VarChar(1000)
+  sender_id   Int
+  created_at  DateTime  @default(now())
+  user1 User @relation("User1", fields: [user1_id], references: [id])
+  user2 User @relation("User2", fields: [user2_id], references: [id])
+  sender User @relation("Sender", fields: [sender_id], references: [id])
+}
+
+model Post {
+  id          Int       @id @default(autoincrement())
+  created_at DateTime   @default(now())
+  author_id   Int
+  parent_id   Int?
+  prev_id     Int?
+  isDeleted Boolean @default(false)
+  previous Post? @relation(name: "PreviousPost", fields: [prev_id], references: [id])
+  next     Post[] @relation(name: "PreviousPost")
+  author User  @relation(name: "Author", fields: [author_id], references: [id])
+  parent Post? @relation(name: "Reblogs", fields: [parent_id], references: [id])
+  children Post[]  @relation(name: "Reblogs")
+  replies Reply[]
+  usersLiked LikesOnPost[] @relation(name: "ParentLikes")
+  selfLiked LikesOnPost[] @relation(name: "SelfLikes")
+  segments Segment[]
+  tags Tag[]
+}
+
+model Reply {
+  id Int @id @default(autoincrement())
+  content String @db.VarChar(1000)
   author_id Int
-  post_id   Int
-  users     users @relation(fields: [author_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  posts     posts @relation(fields: [post_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-
-  @@id([author_id, post_id])
-}
-
-model post_segments {
-  segment_id Int
-  post_id    Int
-  posts      posts    @relation(fields: [post_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  segments   segments @relation(fields: [segment_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-
-  @@id([post_id, segment_id])
-}
-
-model post_tags {
-  tag_id  Int
   post_id Int
-  posts   posts @relation(fields: [post_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  tags    tags  @relation(fields: [tag_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-
-  @@id([post_id, tag_id])
+  posts Post @relation(fields: [post_id], references: [id], onDelete: Cascade)
+  author User @relation(fields: [author_id], references: [id])
 }
 
-model posts {
-  id            Int             @id @default(autoincrement())
-  created_at    DateTime        @default(now())
-  author_id     Int
-  parent_id     Int?
-  likes         likes[]
-  post_segments post_segments[]
-  post_tags     post_tags[]
-  users         users           @relation(fields: [author_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  posts         posts?          @relation("postsToposts", fields: [parent_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  other_posts   posts[]         @relation("postsToposts")
-  replies       replies[]
-}
-
-model replies {
-  id        Int     @id @default(autoincrement())
-  content   String? @db.VarChar(1000)
+model Segment {
+  id Int @id @default(autoincrement())
   author_id Int
-  post_id   Int
-  users     users   @relation(fields: [author_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
-  posts     posts   @relation(fields: [post_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  post_type post_type @default(text)
+  content String @db.VarChar(4000)
+  created_at DateTime @default(now())
+  author User @relation(fields: [author_id], references: [id])
+  posts Post[]
 }
 
-model segments {
-  id            Int             @id @default(autoincrement())
-  author_id     Int
-  post_type     post_type       @default(text)
-  content       String          @db.VarChar(4000)
-  created_at    DateTime        @default(now())
-  post_segments post_segments[]
-  users         users           @relation(fields: [author_id], references: [id], onDelete: NoAction, onUpdate: NoAction)
+model Tag {
+  id  Int @id @default(autoincrement())
+  content String @unique @db.VarChar(140)
+  posts Post[]
 }
 
-model tags {
-  id        Int         @id @default(autoincrement())
-  content   String      @db.VarChar(140)
-  post_tags post_tags[]
-}
-
-model users {
-  id                                      Int         @id @default(autoincrement())
-  email                                   String      @unique @db.VarChar(320)
-  uname                                   String      @unique @db.VarChar(20)
-  pw                                      String
-  pfp                                     String?
-  pfp_id                                  String?
-  h_img                                   String?
-  h_img_id                                String?
-  about                                   String?     @db.VarChar(400)
-  dms_dms_user1_idTousers                 dms[]       @relation("dms_user1_idTousers")
-  dms_dms_user2_idTousers                 dms[]       @relation("dms_user2_idTousers")
-  followers_followers_follower_idTousers  followers[] @relation("followers_follower_idTousers")
-  followers_followers_following_idTousers followers[] @relation("followers_following_idTousers")
-  likes                                   likes[]
-  posts                                   posts[]
-  replies                                 replies[]
-  segments                                segments[]
+model LikesOnPost {
+  id Int @id @default(autoincrement())
+  user User @relation(fields: [user_id], references: [id])
+  user_id Int
+  post Post @relation(name: "ParentLikes", fields: [parent_id], references: [id], onDelete: Cascade, map: "like_parent_fk")
+  post_id Int
+  parent_id Int
+  selfPost Post @relation(name: "SelfLikes" ,fields: [post_id], references: [id], onDelete: Cascade, map: "like_post_fk")
+  @@unique([user_id, post_id])
 }
 
 enum post_type {

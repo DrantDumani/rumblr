@@ -8,22 +8,30 @@
     "test": "NODE_ENV=test && jest --watch",
     "start": "node app.js"
   },
+  "jest": {
+    "globalSetup": "./tests/setup.js",
+    "globalTeardown": "./tests/teardown.js"
+  },
+  "prisma": {
+    "seed": "node prisma/seed.js"
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
     "@prisma/client": "^5.22.0",
     "bcrypt": "^5.1.1",
+    "cloudinary": "^2.5.1",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.21.1",
     "express-validator": "^7.2.0",
     "jsonwebtoken": "^9.0.2",
+    "morgan": "^1.10.0",
     "multer": "^1.4.5-lts.1",
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",
-    "passport-local": "^1.0.0",
-    "pg": "^8.13.1"
+    "passport-local": "^1.0.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.14.0",
