@@ -16,6 +16,9 @@ exports.reblogPost = async (req, res, next) => {
           select: {
             id: true,
           },
+          orderBy: {
+            id: 'asc',
+          },
         },
       },
     });
