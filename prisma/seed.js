@@ -60,22 +60,6 @@ async function main() {
     followUser(Yuga.id, Hilda.id),
   ]);
 
-  await Promise.all([
-    createTag('Gerudo King'),
-    createTag('Hyrule'),
-    createTag('Sky'),
-    createTag('Bolo'),
-    createTag('Rottytops'),
-    createTag('Friends to the end'),
-    createTag('Lorule'),
-    createTag('Her Grace'),
-    createTag('true beuaty'),
-    createTag('my art'),
-    createTag('masterpiece'),
-    createTag('Great Sea'),
-    createTag('Soon...'),
-  ]);
-
   const [totkPost, wwPost, geniePost, hildaPost, yugaPost] = await Promise.all([
     createPost(
       Ganondorf.id,
@@ -87,7 +71,7 @@ async function main() {
       Ganondorf.id,
       'text',
       'This is foolishness...A future? For you?',
-      ['Hyrule', 'Gerudo King']
+      ['Gerudo King', 'Hyrule']
     ),
     createPost(
       Shantae.id,
@@ -107,6 +91,8 @@ async function main() {
       ['Her Grace', 'true beuaty', 'my art', 'masterpiece']
     ),
   ]);
+
+  console.log(totkPost, wwPost, geniePost, hildaPost, yugaPost);
 
   const [tetraReblog, linkReblog, yugaReblog] = await Promise.all([
     reblogPost(
@@ -203,7 +189,7 @@ async function createPost(authorId, segType, segContent, tags) {
     return post;
   } catch (e) {
     if (e.code === 'P2002') {
-      createPost(authorId, segType, segContent, tags);
+      return await createPost(authorId, segType, segContent, tags);
     }
   }
 }
@@ -251,7 +237,7 @@ async function reblogPost(prevPost, authorId, segType, segContent, tags) {
     return rebloggedPost;
   } catch (e) {
     if (e.code === 'P2002') {
-      reblogPost(prevPost, authorId, segType, segContent, tags);
+      return await reblogPost(prevPost, authorId, segType, segContent, tags);
     }
   }
 }
@@ -272,14 +258,6 @@ async function createLikes(userId, post) {
       user_id: userId,
       post_id: post.parent_id || post.id,
       parent_id: post.parent_id || post.id,
-    },
-  });
-}
-
-async function createTag(tag) {
-  await prisma.tag.create({
-    data: {
-      content: tag,
     },
   });
 }
