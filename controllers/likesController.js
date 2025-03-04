@@ -146,9 +146,6 @@ exports.getPostLikes = async (req, res, next) => {
           },
           { parent_id: Number(req.params.postId) },
         ],
-        post: {
-          isDeleted: false,
-        },
       },
       orderBy: { id: 'desc' },
       distinct: ['user_id'],
