@@ -16,4 +16,6 @@ router.get(
   likesController.getLikedPosts
 );
 
+router.get('/:postId', likesController.getPostLikes);
+
 module.exports = router;

@@ -96,4 +96,6 @@ router.get(
 );
 
 router.get('/:postId', postController.getSinglePost);
+
+router.get('/:postId/reblogs', postController.getUsersReblogged);
 module.exports = router;

@@ -748,3 +748,42 @@ exports.getSinglePost = async (req, res, next) => {
     return next(e);
   }
 };
+
+exports.getUsersReblogged = async (req, res, next) => {
+  try {
+    const usersReblogged = await client.post.findUnique({
+      where: {
+        id: Number(req.params.postId),
+      },
+      select: {
+        children: {
+          orderBy: { id: 'desc' },
+          select: {
+            id: true,
+            author: {
+              select: {
+                id: true,
+                pfp: true,
+                uname: true,
+              },
+            },
+            previous: {
+              select: {
+                author: {
+                  select: {
+                    id: true,
+                    uname: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    return res.json(usersReblogged.children);
+  } catch (e) {
+    return next(e);
+  }
+};

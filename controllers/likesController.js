@@ -135,3 +135,34 @@ exports.getLikedPosts = async (req, res, next) => {
     return next(e);
   }
 };
+
+exports.getPostLikes = async (req, res, next) => {
+  try {
+    const usersLikedPost = await client.likesOnPost.findMany({
+      where: {
+        OR: [
+          {
+            post_id: Number(req.params.postId),
+          },
+          { parent_id: Number(req.params.postId) },
+        ],
+      },
+      orderBy: { id: 'desc' },
+      distinct: ['user_id'],
+      select: {
+        id: true,
+        user: {
+          select: {
+            pfp: true,
+            uname: true,
+            id: true,
+          },
+        },
+      },
+    });
+
+    return res.json(usersLikedPost);
+  } catch (e) {
+    return next(e);
+  }
+};
