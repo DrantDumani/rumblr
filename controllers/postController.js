@@ -581,6 +581,7 @@ exports.getUsersPosts = async (req, res, next) => {
 exports.getTaggedPosts = async (req, res, next) => {
   try {
     const cursor = Number(req.query.cursor);
+    const tagName = req.query.tagName.replace(/([\\|%|_])/g, '\\$1');
 
     const taggedPosts = await client.post.findMany({
       take: 10,
@@ -590,7 +591,10 @@ exports.getTaggedPosts = async (req, res, next) => {
         isDeleted: false,
         tags: {
           some: {
-            content: req.query.tagName,
+            content: {
+              equals: tagName,
+              mode: 'insensitive',
+            },
           },
         },
         parent_id: null,
